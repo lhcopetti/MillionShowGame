@@ -2,11 +2,14 @@ package com.copetti.core.dao;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
@@ -154,16 +157,25 @@ public class QuestionXMLDao implements AbstractDAO<Question> {
 	}
 
 	@Override
-	public List<Question> restoreAll() throws Exception {
+	public List<Question> restoreAll() {
 
 		questions.clear();
 
-		XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser()
-				.getXMLReader();
-		xmlReader.setContentHandler(defaultHandler);
-		xmlReader.parse(xmlFile.getAbsolutePath());
+		try {
 
-		return questions;
+			XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser()
+					.getXMLReader();
+			xmlReader.setContentHandler(defaultHandler);
+			xmlReader.parse(xmlFile.getAbsolutePath());
+			return questions;
+
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			System.err
+					.println("It was not possible to load any question. Reason is: "
+							+ e.getMessage());
+
+			return Collections.emptyList();
+		}
 	}
 
 }

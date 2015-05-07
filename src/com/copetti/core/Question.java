@@ -33,6 +33,11 @@ public class Question {
 
 	public Question(String question, String answer, Set<String> wrongOptions,
 			String difficulty) {
+		this(question, answer, wrongOptions, Difficulty.fromString(difficulty));
+	}
+
+	public Question(String question, String answer, Set<String> wrongOptions,
+			Difficulty difficulty) {
 
 		if (wrongOptions.size() < 3)
 			throw new IllegalArgumentException(
@@ -70,7 +75,7 @@ public class Question {
 				break;
 			}
 
-		this.difficulty = Difficulty.fromString(difficulty);
+		this.difficulty = difficulty;
 	}
 
 	public String getQuestion() {

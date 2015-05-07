@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface AbstractDAO<T> {
 
-	public List<T> restoreAll() throws Exception;
+	public List<T> restoreAll();
 
 }

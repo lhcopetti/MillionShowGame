@@ -49,9 +49,10 @@ public interface MillionShowGame {
 	 */
 	public void skip();
 
-	/*
+	/**
 	 * Uses the Cards help if the object is in a state where using cards is
 	 * valid.
+	 * @param number TODO
 	 */
 	public Set<Option> useCards();
 
@@ -63,6 +64,13 @@ public interface MillionShowGame {
 	 * @return True if the answer was correct. False, otherwise.
 	 */
 	public boolean answer(Option option);
+	
+	/**
+	 * Returns the correct option if the game is over.
+	 * @return
+	 * @throws IllegalStateException
+	 */
+	public Option getCorrectAnswer() throws IllegalStateException;
 
 	/**
 	 * Returns true if the game is over. False, otherwise.
