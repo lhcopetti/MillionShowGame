@@ -7,6 +7,7 @@ import com.copetti.core.Question.Option;
 
 public interface MillionShowGame {
 
+	// FIXME what is this name? GoD!!!
 	public enum PrizeValue {
 		ERROR, STOP, SCORE
 	}

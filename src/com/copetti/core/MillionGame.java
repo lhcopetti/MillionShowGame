@@ -1,5 +1,6 @@
 package com.copetti.core;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,7 +12,6 @@ import java.util.Set;
 
 import com.copetti.core.Question.Difficulty;
 import com.copetti.core.Question.Option;
-import com.sun.xml.internal.txw2.IllegalSignatureException;
 
 
 public class MillionGame implements MillionShowGame
@@ -24,6 +24,10 @@ public class MillionGame implements MillionShowGame
 	private static final int INDEX_STOP = 1;
 	private static final int INDEX_SCORE = 0;
 
+	// FIXME WAYYY TOOO MANY LOOSE VARIABLESSSS
+	// FIXME AND I MEANN IT!!!!
+
+	// Put Causes in an enum!
 	private static final int DIFFICULTY_EASY_RANGE = 5;
 	private static final int DIFFICULTY_MEDIUM_RANGE = 10;
 	@SuppressWarnings("unused")
@@ -33,7 +37,6 @@ public class MillionGame implements MillionShowGame
 	public Map<GameAction, Integer> availableActions;
 
 	private int currentLevel;
-	private Difficulty currentDifficulty;
 
 	private boolean gameOver;
 	private PrizeValue lastAction;
@@ -49,7 +52,7 @@ public class MillionGame implements MillionShowGame
 		{ 3000,    2000,   1000   },		
 		{ 4000,    3000,   1500   },		
 		{ 5000,    4000,   2000   },		
-		{ 1000,    5000,   2500   },		
+		{ 10000,   5000,   2500   },		
 		{ 20000,   10000,  5000   },		
 		{ 30000,   20000,  10000  },		
 		{ 40000,   30000,  15000  },		
@@ -79,15 +82,14 @@ public class MillionGame implements MillionShowGame
 	@Override
 	public boolean canQuit()
 	{
-		// TODO Auto-generated method stub
-		return false;
+		// You can always quit the game.
+		return true;
 	}
 
 	@Override
 	public void quit() throws IllegalStateException
 	{
-		// TODO Auto-generated method stub
-
+		setGameOver("You chose to STOP", PrizeValue.STOP);
 	}
 
 	@Override
@@ -103,31 +105,42 @@ public class MillionGame implements MillionShowGame
 		{
 			int skipRemaining = availableActions.get(GameAction.SKIP);
 			availableActions.put(GameAction.SKIP, --skipRemaining);
+
+			if (questionPool.hasNext(getCurrentDifficulty()))
+				currentQuestion = questionPool.getNext(getCurrentDifficulty());
+			else
+				throw new IllegalStateException(
+						"There are no questions left to be queried from the question pool!");
 		}
+		else
+			throw new IllegalStateException("Cannot call skip anymore");
 	}
 
 	@Override
 	public Set<Option> useCards()
 	{
 
-		if (can(GameAction.USECARDS) <= 0) { throw new IllegalStateException(
-				"Cannot use cards anymore!"); }
+		if (can(GameAction.USECARDS) > 0)
+		{
+			int useRemaining = availableActions.get(GameAction.USECARDS);
+			availableActions.put(GameAction.USECARDS, --useRemaining);
 
-		int useRemaining = availableActions.get(GameAction.USECARDS);
-		availableActions.put(GameAction.USECARDS, --useRemaining);
+			return getUseCardsOptions();
+		}
 
-		return getUseCardsOptions();
+		throw new IllegalStateException("Cannot use cards anymore!");
 	}
 
 	protected Set<Option> getUseCardsOptions()
 	{
-		Random random = new Random();
-		int numberOfCardsToAdd = random.nextInt() % (Option.values().length);
+		int numberOfCardsToAdd = getRandomValue(Option.values().length);
 
 		// Add the answer
-		List<Option> options = Arrays.asList(getCurrentQuestion().getAnswer());
+		List<Option> options = new ArrayList<Option>(
+				Arrays.asList(getCurrentQuestion().getAnswer()));
 
-		List<Option> optionPool = Arrays.asList(Option.values());
+		List<Option> optionPool = new ArrayList<Option>(Arrays.asList(Option
+				.values()));
 		optionPool.remove(getCurrentQuestion().getAnswer());
 		Collections.shuffle(optionPool);
 
@@ -137,32 +150,50 @@ public class MillionGame implements MillionShowGame
 		return Collections.unmodifiableSet(new HashSet<Option>(options));
 	}
 
+	private int getRandomValue(int upperBound)
+	{
+		return new Random().nextInt(upperBound);
+	}
+
+	public int getCurrentLevel()
+	{
+		return currentLevel;
+	}
+
 	@Override
 	public boolean answer(Option option)
 	{
 
-		if (isGameOver()) throw new IllegalStateException("Game is over!");
+		if (isGameOver())
+			throw new IllegalStateException(
+					"You cannot answer to any question for the game is over!");
 
 		boolean answeredRight = currentQuestion.getAnswer() == option;
 
 		if (answeredRight)
 		{
-
-			currentLevel++;
-			lastAction = PrizeValue.SCORE;
-
-			if (currentLevel == prizes.length)
+			if (currentLevel == getLastLevel())
 			{
-				currentLevel--;
-				setGameOver("You WIN the FINAL Prize! Congratulations!");
+				setGameOver("You WIN the FINAL Prize! Congratulations!",
+						PrizeValue.SCORE);
+			}
+			else
+			{
+				currentLevel++;
+				lastAction = PrizeValue.SCORE;
+				if (questionPool.hasNext(getCurrentDifficulty()))
+					currentQuestion = questionPool
+							.getNext(getCurrentDifficulty());
+				else
+					throw new IllegalStateException(
+							"Run out of Questions of difficulty: "
+									+ getCurrentDifficulty());
 			}
 
 		}
 		else
 		{
-			lastAction = PrizeValue.ERROR;
-			setGameOver("Wrong Answer!");
-
+			setGameOver("Wrong Answer!", PrizeValue.ERROR);
 		}
 
 		return answeredRight;
@@ -187,14 +218,12 @@ public class MillionGame implements MillionShowGame
 	@Override
 	public Question getCurrentQuestion()
 	{
-
 		return currentQuestion;
 	}
 
 	@Override
 	public Map<PrizeValue, Integer> getPrizes()
 	{
-
 		int[] prizesArray = prizes[currentLevel];
 
 		Map<PrizeValue, Integer> map = new HashMap<MillionShowGame.PrizeValue, Integer>();
@@ -204,20 +233,16 @@ public class MillionGame implements MillionShowGame
 		return Collections.unmodifiableMap(map);
 	}
 
-	protected boolean goToLevel(int level)
+	protected int getLastLevel()
 	{
-
-		if (level < 0 || level >= prizes.length) return false;
-
-		currentLevel = level;
-
-		return true;
+		return prizes.length - 1;
 	}
 
-	private void setGameOver(String cause)
+	private void setGameOver(String cause, PrizeValue lastAction)
 	{
 		reasonGameOver = cause;
 		gameOver = true;
+		this.lastAction = lastAction;
 	}
 
 	public String getGameOverCause()
@@ -231,8 +256,13 @@ public class MillionGame implements MillionShowGame
 	public Option getCorrectAnswer() throws IllegalStateException
 	{
 		if (isGameOver()) return getCurrentQuestion().getAnswer();
-		throw new IllegalSignatureException(
+		throw new IllegalStateException(
 				"Cannot retrieve the answer before the game is over!");
+	}
+
+	private Difficulty getCurrentDifficulty()
+	{
+		return difficultyFromLevel(currentLevel);
 	}
 
 	public Difficulty difficultyFromLevel(int currentLevel)
