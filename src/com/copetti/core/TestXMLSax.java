@@ -18,8 +18,8 @@ public class TestXMLSax extends DefaultHandler {
 
 	public static void main(String[] args) throws Exception {
 
-		StringBuffer accumulator = new StringBuffer();
-		Map<String, String> map = new HashMap<String, String>();
+		final StringBuffer accumulator = new StringBuffer();
+		final Map<String, String> map = new HashMap<String, String>();
 
 		DefaultHandler dh = new DefaultHandler() {
 			@Override
