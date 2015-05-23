@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.copetti.core.MillionShowGame.GameAction;
+import com.copetti.core.MillionShowGame.MillionCards;
 import com.copetti.core.MillionShowGame.PrizeValue;
 import com.copetti.core.Question.Difficulty;
 import com.copetti.core.Question.Option;
@@ -92,13 +93,13 @@ public class MillionGameTest
 		assertTrue(mg.can(GameAction.USECARDS) > 0);
 
 		while (mg.can(GameAction.USECARDS) > 0)
-			mg.useCards();
+			mg.useCards(MillionCards.THREE);
 
 		assertTrue(mg.can(GameAction.USECARDS) == 0);
 
 		try
 		{
-			mg.useCards();
+			mg.useCards(MillionCards.ACE);
 			throw new AssertionError();
 		}
 		catch (IllegalStateException e)
@@ -157,8 +158,12 @@ public class MillionGameTest
 		// The question should not change
 		// The currentLevel should not change
 
-		Set<Option> optionsLeft = mg.useCards();
+		MillionCards two = MillionCards.TWO;
+		Set<Option> optionsLeft = mg.useCards(two);
+
 		assertTrue(optionsLeft.contains(mg.getCurrentQuestion().getAnswer()));
+		assertTrue(optionsLeft.size() == Option.values().length
+				- two.numberOfOptionsToRemove());
 	}
 
 	@Test
@@ -166,7 +171,6 @@ public class MillionGameTest
 	{
 		// Change currentLevel
 		// Change currentQuestion
-		//
 		Question cQ = mg.getCurrentQuestion();
 		int prizeScore = mg.getPrizes().get(PrizeValue.SCORE);
 		mg.answer(cQ.getAnswer());

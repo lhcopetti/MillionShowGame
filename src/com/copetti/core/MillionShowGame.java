@@ -16,6 +16,21 @@ public interface MillionShowGame {
 		SKIP, USECARDS
 	}
 
+	public enum MillionCards {
+		KING(0), ACE(1), TWO(2), THREE(3);
+
+		private MillionCards(int optionsToRemove) {
+			this.optionsToRemove = optionsToRemove;
+		}
+
+		private int optionsToRemove;
+
+		public int numberOfOptionsToRemove() {
+			return optionsToRemove;
+		}
+
+	}
+
 	/**
 	 * Returns true if quitting is available. False, otherwise.
 	 * 
@@ -55,7 +70,7 @@ public interface MillionShowGame {
 	 * valid.
 	 * @param number TODO
 	 */
-	public Set<Option> useCards();
+	public Set<Option> useCards(MillionCards card);
 
 	/**
 	 * Attempts to answer the question given by {@link #getCurrentQuestion()}.

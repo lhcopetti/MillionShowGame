@@ -1,8 +1,9 @@
 package com.copetti.core.dao;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -13,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
@@ -55,7 +57,7 @@ public class QuestionXMLDao implements AbstractDAO<Question> {
 		}
 	}
 
-	private File xmlFile;
+	private InputStream inputStream;
 	private DefaultHandler defaultHandler;
 	private StringBuilder accumulator;
 
@@ -69,12 +71,11 @@ public class QuestionXMLDao implements AbstractDAO<Question> {
 	public Set<String> wrongOptions = new HashSet<String>();
 	public String difficulty;
 
-	private QuestionXMLDao(File xmlFile) {
+	public QuestionXMLDao(InputStream is) {
 
 		questions = new ArrayList<Question>();
 		accumulator = new StringBuilder();
-
-		this.xmlFile = xmlFile;
+		this.inputStream = is;
 
 		defaultHandler = new DefaultHandler() {
 			@Override
@@ -144,16 +145,9 @@ public class QuestionXMLDao implements AbstractDAO<Question> {
 		};
 	}
 
-	public static QuestionXMLDao newInstance(String xmlQuestionFile)
-			throws FileNotFoundException {
+	public QuestionXMLDao(File xmlFile) throws IOException {
 
-		File file = new File(xmlQuestionFile);
-
-		if (!file.exists())
-			throw new FileNotFoundException("The file: "
-					+ file.getAbsolutePath() + " was not found.");
-
-		return new QuestionXMLDao(file);
+		this(new FileInputStream(xmlFile));
 	}
 
 	@Override
@@ -166,7 +160,7 @@ public class QuestionXMLDao implements AbstractDAO<Question> {
 			XMLReader xmlReader = SAXParserFactory.newInstance().newSAXParser()
 					.getXMLReader();
 			xmlReader.setContentHandler(defaultHandler);
-			xmlReader.parse(xmlFile.getAbsolutePath());
+			xmlReader.parse(new InputSource(inputStream));
 			return questions;
 
 		} catch (ParserConfigurationException | SAXException | IOException e) {

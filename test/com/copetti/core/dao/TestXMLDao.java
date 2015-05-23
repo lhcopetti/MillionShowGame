@@ -54,7 +54,7 @@ public class TestXMLDao {
 			fos.write(xmlFile.getBytes(), 0, xmlFile.length());
 			fos.flush();
 			fos.close();
-			qxd = QuestionXMLDao.newInstance(tempFile.getAbsolutePath());
+			qxd = new QuestionXMLDao(tempFile);
 
 			questions = qxd.restoreAll();
 

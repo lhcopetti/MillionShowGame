@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import com.copetti.core.Question.Difficulty;
@@ -117,7 +116,7 @@ public class MillionGame implements MillionShowGame
 	}
 
 	@Override
-	public Set<Option> useCards()
+	public Set<Option> useCards(MillionCards card)
 	{
 
 		if (can(GameAction.USECARDS) > 0)
@@ -125,15 +124,19 @@ public class MillionGame implements MillionShowGame
 			int useRemaining = availableActions.get(GameAction.USECARDS);
 			availableActions.put(GameAction.USECARDS, --useRemaining);
 
-			return getUseCardsOptions();
+			return getUseCardsOptions(card);
 		}
 
 		throw new IllegalStateException("Cannot use cards anymore!");
 	}
 
-	protected Set<Option> getUseCardsOptions()
+	protected Set<Option> getUseCardsOptions(MillionCards card)
 	{
-		int numberOfCardsToAdd = getRandomValue(Option.values().length);
+		// @formatter:off
+		int numberOfCardsToAdd = Option.values().length // 4
+								 - card.numberOfOptionsToRemove() // Cards to remove
+								 - 1; // The answer is always there.
+		// @formatter:on
 
 		// Add the answer
 		List<Option> options = new ArrayList<Option>(
@@ -148,11 +151,6 @@ public class MillionGame implements MillionShowGame
 			options.add(optionPool.get(i));
 
 		return Collections.unmodifiableSet(new HashSet<Option>(options));
-	}
-
-	private int getRandomValue(int upperBound)
-	{
-		return new Random().nextInt(upperBound);
 	}
 
 	public int getCurrentLevel()
